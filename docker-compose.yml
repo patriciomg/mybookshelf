@@ -1,0 +1,60 @@
+version: '3.8'
+
+services:
+  web:
+    container_name: mybookshelf_web
+    build:
+      context: ./
+      dockerfile: Dockerfile
+      # https://stackoverflow.com/a/60307272/2864517
+      # Although the server exposes :80 to the host, the host's network is not, by default, available to other containers;
+      # i.e. the host's :80 is not available inside other (including the client) containers.
+      # Alternatively, you may:
+      #    reference the host via its DNS within the container;
+      #    create a docker network and bind both containers to it (thereby also using container names to reference)
+      #    $ docker run ... --net=host
+      # network: host
+      #
+      # or define a network as in the networks: block :)
+    restart: unless-stopped
+    command: uvicorn main:app --reload --access-log --host=0.0.0.0 --port 80 --workers 2 --log-level debug --log-config /app/log.yml
+    volumes:
+      - ./app:/app
+      - ./webserver/logs:/var/log/web
+    environment:
+      DEVELOPMENT: 1
+    ports:
+      - 80:80
+      # - 443:443
+    networks:
+      - default
+      - my-book-shelf-network
+    depends_on:
+      - mongodb
+      - redis
+
+  mongodb:
+    container_name: mybookshelf_db
+    image: mongo:4.4.4
+    restart: unless-stopped
+    volumes:
+      - ./data/db:/data/db
+      - ./data/logs:/var/log/mongo
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: MTM0YTBiNjg3Y2JjMjUwYjU5MTE3OGQ3
+      PUID: 1000
+      PGID: 1000
+    ports:
+      - "27027:27017"
+
+  redis:
+    container_name: mybookshelf_redis
+    image: redis:alpine3.13
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+
+# if no network is specified, all containers are in the same network, which is created by default. Therefore, if only one network is used, no network has to be specified at all.
+networks:
+  my-book-shelf-network:
