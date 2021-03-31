@@ -4,3 +4,5 @@ __pycache__
 .vscode
 .idea
 .project
+data/db
+data/logs
