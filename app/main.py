@@ -12,5 +12,5 @@ async def root():
     return {"message": message}
 
 if __name__ == "__main__":
-    print('HERE  at main.py')
-    # uvicorn.run(app, host="0.0.0.0", port=8000, reload=True, log_level="debug")
+    print('Starting service from main.py')
+    uvicorn.run(app, host="0.0.0.0", port=8000, reload=True, log_level="debug")
